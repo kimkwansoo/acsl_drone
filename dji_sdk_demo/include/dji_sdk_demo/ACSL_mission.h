@@ -32,6 +32,7 @@
 
 #include <tf/tf.h>
 #include <sensor_msgs/Joy.h>
+#include <std_msgs/String.h>
 
 // SDK core library
 #include <djiosdk/dji_vehicle.hpp>
@@ -145,6 +146,8 @@ void gps_health_callback(const std_msgs::UInt8::ConstPtr& msg);
 void ACSL_local_position_callback(const dji_sdk::ACSL_local_position::ConstPtr& msg);
 
 void ACSL_local_position_delta_callback(const dji_sdk::ACSL_local_position_delta::ConstPtr& msg);
+
+
 
 // user function
 

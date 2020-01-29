@@ -15,6 +15,7 @@ ros::ServiceClient set_local_pos_reference;
 // publisher
 ros::Publisher ctrlPosYawPub;
 ros::Publisher ctrlBrakePub;
+ros::Publisher ctrlPostionCpltPub;
 
 // global variables for subscribed topics
 uint8_t flight_status = 255;
@@ -33,6 +34,8 @@ int local_target_arr[MAX_TARGET][4] = {
 int inputNum = 0;
 int nowNum = 0;
 
+uint8_t seqeunce = 0;
+
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "ACSL_mission");
@@ -47,6 +50,8 @@ int main(int argc, char **argv)
   // publisher
   ctrlPosYawPub = nh.advertise<sensor_msgs::Joy>("dji_sdk/flight_control_setpoint_ENUposition_yaw", 10);
   ctrlBrakePub = nh.advertise<sensor_msgs::Joy>("dji_sdk/flight_control_setpoint_generic", 10);
+  ctrlPostionCpltPub = nh.advertise<std_msgs::UInt8>("dji_sdk/positionCplt", 10);
+  
 
   // subscriber
   ros::Subscriber attitudeSub = nh.subscribe("dji_sdk/attitude", 10, &attitude_callback);
@@ -177,7 +182,7 @@ bool drone_user_control(void)
   }*/
 
   //local_set_target(local_target_arr[0][0], local_target_arr[0][1], local_target_arr[0][2], local_target_arr[0][3]);
-
+  
 
 }
 
@@ -431,8 +436,17 @@ void local_position_ctrl(double &xCmd, double &yCmd, double &zCmd)
       (local_position.point.z > (target_offset_z - 0.1)) && (local_position.point.z < (target_offset_z + 0.1)))
   {
       //ROS_INFO("user control finished");
+
+      std_msgs::UInt8 data;
+      data.data = seqeunce;
+      ctrlPostionCpltPub.publish(data);
+      //publish seqeunce;
+      
   }
 }
+
+
+
 
 void ACSL_local_position_callback(const dji_sdk::ACSL_local_position::ConstPtr& msg)
 {
@@ -440,6 +454,7 @@ void ACSL_local_position_callback(const dji_sdk::ACSL_local_position::ConstPtr& 
   local_set_target(msg->targetX, msg->targetY, msg->targetZ, msg->targetYaw);
   g_flag_drone_local_set = 1;
   ROS_INFO("MessageSequence : %d", msg->seq);
+  seqeunce = msg->seq;
   ROS_INFO("targetX : %f", msg->targetX);
   ROS_INFO("targetY : %f", msg->targetY);
   ROS_INFO("targetZ : %f", msg->targetZ);
